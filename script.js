@@ -13,24 +13,37 @@ function initializeKeywords() {
         try {
             // Decode base64 parameter
             const decodedData = atob(demoParam);
+            console.log('Decoded data:', decodedData);
             const params = JSON.parse(decodedData);
-            currentKeywords = params.map(p => ({ k: p.k, t: p.t }));
+            console.log('Parsed params:', params);
             
-            // Display keywords and start demo
-            displayKeywordList();
-            if (currentKeywords.length > 0) {
-                startTypingAnimation();
+            if (Array.isArray(params)) {
+                currentKeywords = params.map(p => ({ k: p.k, t: p.t }));
+                console.log('Current keywords:', currentKeywords);
+                
+                // Display keywords and start demo
+                displayKeywordList();
+                if (currentKeywords.length > 0) {
+                    startTypingAnimation();
+                }
+            } else {
+                throw new Error('Invalid demo parameter format');
             }
         } catch (e) {
             console.error('Error parsing URL data:', e);
             currentKeywords = [];
         }
+    } else {
+        console.log('No demo parameter found');
     }
 }
 
 function displayKeywordList() {
     const keywordListDiv = document.getElementById('keywordList');
-    if (!keywordListDiv) return;
+    if (!keywordListDiv) {
+        console.error('Keyword list div not found');
+        return;
+    }
 
     keywordListDiv.innerHTML = `
         <div class="keyword-section">
@@ -148,4 +161,7 @@ searchInput.addEventListener('input', function(e) {
 });
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', initializeKeywords);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Document loaded, initializing...');
+    initializeKeywords();
+});
