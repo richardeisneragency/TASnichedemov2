@@ -27,61 +27,67 @@ function updateEntry(id, field, value) {
 
 function renderEntries() {
     const container = document.getElementById('keywordEntries');
+    if (!container) return;
+
     container.innerHTML = keywordEntries.map(entry => `
         <div class="keyword-entry">
             <div class="input-group">
-                <label>Keyword (what users type):</label>
+                <label for="keyword-${entry.id}">Keyword (what users type)</label>
                 <input type="text" 
-                    value="${entry.keyword}" 
-                    onchange="updateEntry(${entry.id}, 'keyword', this.value)"
-                    placeholder="e.g., dentist orlando fl">
+                    id="keyword-${entry.id}" 
+                    value="${entry.keyword}"
+                    onchange="updateEntry(${entry.id}, 'keyword', this.value)">
             </div>
             <div class="input-group">
-                <label>Target Suggestion (what appears in dropdown):</label>
+                <label for="target-${entry.id}">Target (what appears in suggestions)</label>
                 <input type="text" 
-                    value="${entry.target}" 
-                    onchange="updateEntry(${entry.id}, 'target', this.value)"
-                    placeholder="e.g., dentist orlando fl dr smith dds">
+                    id="target-${entry.id}" 
+                    value="${entry.target}"
+                    onchange="updateEntry(${entry.id}, 'target', this.value)">
             </div>
-            <button class="remove" onclick="removeEntry(${entry.id})">Remove Entry</button>
+            <button class="remove" onclick="removeEntry(${entry.id})">Remove</button>
         </div>
     `).join('');
 }
 
 function updateDemoUrl() {
     const demoUrl = document.getElementById('demoUrl');
-    if (keywordEntries.length === 0) {
+    if (!demoUrl) return;
+
+    const validEntries = keywordEntries.filter(entry => entry.keyword && entry.target);
+    if (validEntries.length === 0) {
         demoUrl.value = '';
         return;
     }
 
-    const data = {
-        keywords: keywordEntries.map(entry => ({
-            k: entry.keyword,
-            t: entry.target
-        }))
-    };
+    const params = validEntries.map(entry => ({
+        k: entry.keyword,
+        t: entry.target
+    }));
 
-    const baseUrl = window.location.href.replace('admin.html', 'index.html');
-    demoUrl.value = `${baseUrl}?data=${encodeURIComponent(JSON.stringify(data))}`;
+    const baseUrl = window.location.origin;
+    const queryString = btoa(JSON.stringify(params));
+    demoUrl.value = `${baseUrl}/?d=${queryString}`;
 }
 
-function copyUrl() {
+async function copyUrl() {
     const demoUrl = document.getElementById('demoUrl');
-    if (!demoUrl.value) {
-        alert('Please add at least one keyword pair first');
-        return;
-    }
+    if (!demoUrl || !demoUrl.value) return;
 
-    navigator.clipboard.writeText(demoUrl.value).then(() => {
-        alert('Demo URL copied to clipboard!');
-    }).catch(err => {
-        console.error('Failed to copy URL:', err);
-        alert('Failed to copy URL. Please select and copy manually.');
-    });
+    try {
+        await navigator.clipboard.writeText(demoUrl.value);
+        const button = document.querySelector('.url-container button');
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy:', err);
+    }
 }
 
-// Add initial entry and set up the page
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     addKeywordEntry();
 });
