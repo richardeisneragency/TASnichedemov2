@@ -1,0 +1,16 @@
+{
+  "name": "niche-demo-local",
+  "version": "1.0.0",
+  "description": "Google-style autosuggest demo with SEO rank checking",
+  "main": "functions/server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "npm install"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "serverless-http": "^3.1.1"
+  }
+}
