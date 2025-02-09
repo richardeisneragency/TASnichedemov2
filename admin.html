@@ -61,44 +61,89 @@
             font-weight: 600;
             margin: 0 0 24px;
         }
-        .input-group {
-            margin-bottom: 24px;
-        }
-        label {
-            display: block;
-            color: #3c4043;
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 12px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 16px;
-            font-size: 18px;
-            border: 2px solid #dadce0;
+        .keyword-entry {
+            background: #f8f9fa;
+            padding: 24px;
             border-radius: 8px;
-            box-sizing: border-box;
-            font-family: inherit;
+            margin-bottom: 24px;
+            border: 1px solid #dadce0;
         }
-        input[type="text"]:focus {
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #202124;
+            font-weight: 500;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            background: white;
+        }
+        .input-group input:focus {
             outline: none;
             border-color: #1a73e8;
-            box-shadow: 0 0 0 2px rgba(26,115,232,0.1);
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
         }
         button {
             background: #1a73e8;
             color: white;
             border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-size: 18px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-            min-width: 200px;
+            transition: background-color 0.2s;
         }
         button:hover {
             background: #1557b0;
+        }
+        button.remove {
+            background: #dc3545;
+            margin-top: 8px;
+        }
+        button.remove:hover {
+            background: #bb2d3b;
+        }
+        .add-keyword {
+            margin: 24px 0;
+            width: 100%;
+            font-size: 18px;
+        }
+        .demo-section {
+            margin-top: 48px;
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+        }
+        .demo-section h2 {
+            margin-top: 0;
+            color: #1a73e8;
+            font-size: 24px;
+        }
+        .url-container {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .url-container input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            background: white;
+            font-family: monospace;
+        }
+        .url-container button {
+            white-space: nowrap;
         }
         .keyword-list {
             margin-top: 32px;
@@ -287,171 +332,23 @@
     
     <div class="container">
         <h1>Top Autosuggest Admin</h1>
-        <div class="subtitle">Create Your Custom Autosuggest Demo</div>
-        <div class="description">
-            Enter your keywords and target suggestions below. Generate a shareable demo link to show your
-            clients how their business name will appear in Google's autosuggest.
-        </div>
+        <div class="subtitle">Create Your Demo</div>
+        <p class="description">Add keyword pairs below. When users type the "keyword", they'll see the "target" appear in their suggestions, helping guide them to the content you want them to find.</p>
         
-        <div class="panels-container">
-            <div class="panel">
-                <h2 class="panel-title">Add Keywords and Targets</h2>
-                <div class="input-group">
-                    <label for="keyword">Keyword:</label>
-                    <input type="text" id="keyword" placeholder="Enter a keyword">
-                </div>
-                <div class="input-group">
-                    <label for="target">Target Suggestion:</label>
-                    <input type="text" id="target" placeholder="Enter the target suggestion">
-                </div>
-                <button onclick="addKeyword()">Add Keyword</button>
-                
-                <div id="keywordList" class="keyword-list"></div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showRankCheck" onchange="toggleRankSection()">
-                    <label for="showRankCheck">Add rank check keywords</label>
-                </div>
-
-                <div id="rankCheckSection" class="rank-check-section" style="display: none;">
-                    <h3>Add Rank Check Keywords</h3>
-                    <div class="panel-description">
-                        These keywords will appear in a separate section showing their current Google rank:
-                    </div>
-                    <div class="input-group">
-                        <label for="businessUrl">Domain URL:</label>
-                        <input type="text" id="businessUrl" placeholder="Enter your domain (e.g., example.com)">
-                    </div>
-                    <div class="input-group">
-                        <label for="rankKeywords">Keywords to Check:</label>
-                        <textarea id="rankKeywords" rows="4" placeholder="Enter keywords to check rankings for (one per line)"></textarea>
-                    </div>
-                    <button onclick="addRankKeywords()" class="rank-check-btn">Add Rank Keywords</button>
-                </div>
-            </div>
-            
-            <div class="panel">
-                <h2 class="panel-title">Generate Demo Link</h2>
-                <div class="panel-description">
-                    Click the button below to generate a shareable demo link with your keywords:
-                </div>
-                <button onclick="generateDemoLink()">Generate Demo Link</button>
-                <div id="demoUrl" class="demo-url" style="display: none;">
-                    <div class="demo-url-label">Your Demo Link:</div>
-                    <div id="demoUrlText" class="demo-url-text"></div>
-                    <button class="copy-btn" onclick="copyDemoLink()">Save Demo Link to Clipboard</button>
-                    <div id="copySuccess" class="copy-success">✓ Copied to clipboard</div>
-                </div>
+        <div id="keywordEntries"></div>
+        <button class="add-keyword" onclick="addKeywordEntry()">+ Add Keyword Pair</button>
+        
+        <div class="demo-section">
+            <h2>Demo URL</h2>
+            <div class="url-container">
+                <input type="text" id="demoUrl" readonly>
+                <button onclick="copyUrl()">Copy URL</button>
             </div>
         </div>
     </div>
 
+    <script src="admin.js"></script>
     <script>
-        let keywords = [];
-        let rankKeywords = [];
-        
-        function addKeyword() {
-            const keyword = document.getElementById('keyword').value.trim();
-            const target = document.getElementById('target').value.trim();
-            
-            if (!keyword || !target) {
-                alert('Please fill in both fields');
-                return;
-            }
-            
-            keywords.push({k: keyword, t: target});
-            updateUI();
-            
-            document.getElementById('keyword').value = '';
-            document.getElementById('target').value = '';
-        }
-        
-        function addRankKeywords() {
-            const businessUrl = document.getElementById('businessUrl').value.trim();
-            const newKeywords = document.getElementById('rankKeywords').value
-                .split('\n')
-                .map(k => k.trim())
-                .filter(k => k);
-
-            if (!businessUrl) {
-                alert('Please enter a domain URL');
-                return;
-            }
-            if (newKeywords.length === 0) {
-                alert('Please enter at least one keyword to check');
-                return;
-            }
-
-            rankKeywords = newKeywords.map(k => ({
-                keyword: k,
-                url: businessUrl
-            }));
-
-            updateUI();
-            document.getElementById('businessUrl').value = '';
-            document.getElementById('rankKeywords').value = '';
-        }
-        
-        function removeKeyword(index) {
-            keywords.splice(index, 1);
-            updateUI();
-        }
-        
-        function updateUI() {
-            const keywordList = document.getElementById('keywordList');
-            keywordList.innerHTML = keywords.map((item, index) => `
-                <div class="keyword-item">
-                    <span class="keyword-text">${item.k} → ${item.t}</span>
-                    <button onclick="removeKeyword(${index})" class="remove-btn">Remove</button>
-                </div>
-            `).join('');
-            
-            // Hide demo URL when keywords change
-            document.getElementById('demoUrl').style.display = 'none';
-        }
-        
-        function toggleRankSection() {
-            const checkbox = document.getElementById('showRankCheck');
-            const section = document.getElementById('rankCheckSection');
-            section.style.display = checkbox.checked ? 'block' : 'none';
-            if (!checkbox.checked) {
-                rankKeywords = [];
-                updateUI();
-            }
-        }
-        
-        function generateDemoLink() {
-            if (keywords.length === 0 && rankKeywords.length === 0) {
-                alert('Please add at least one keyword');
-                return;
-            }
-            
-            const demoData = {
-                keywords: keywords,
-                rankKeywords: rankKeywords
-            };
-            
-            const baseUrl = window.location.href.replace('admin.html', 'index.html');
-            const url = `${baseUrl}?data=${encodeURIComponent(JSON.stringify(demoData))}`;
-            
-            const demoUrl = document.getElementById('demoUrl');
-            const demoUrlText = document.getElementById('demoUrlText');
-            demoUrlText.textContent = url;
-            demoUrl.style.display = 'block';
-        }
-        
-        function copyDemoLink() {
-            const demoUrlText = document.getElementById('demoUrlText').textContent;
-            navigator.clipboard.writeText(demoUrlText).then(() => {
-                const copySuccess = document.getElementById('copySuccess');
-                copySuccess.classList.add('show');
-                setTimeout(() => {
-                    copySuccess.classList.remove('show');
-                }, 2000);
-            });
-        }
-        
-        // Add credits checking function
         async function checkCredits() {
             const creditsCounter = document.getElementById('creditsCounter');
             creditsCounter.classList.add('loading');

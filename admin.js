@@ -29,7 +29,6 @@ function renderEntries() {
     const container = document.getElementById('keywordEntries');
     container.innerHTML = keywordEntries.map(entry => `
         <div class="keyword-entry">
-            <h3>Keyword Entry</h3>
             <div class="input-group">
                 <label>Keyword (what users type):</label>
                 <input type="text" 
@@ -50,37 +49,39 @@ function renderEntries() {
 }
 
 function updateDemoUrl() {
-    const validEntries = keywordEntries.filter(entry => entry.keyword && entry.target);
-    if (validEntries.length === 0) {
-        document.getElementById('demoUrl').textContent = 'Add keywords to generate URL';
+    const demoUrl = document.getElementById('demoUrl');
+    if (keywordEntries.length === 0) {
+        demoUrl.value = '';
         return;
     }
 
-    const data = validEntries.map(entry => ({
-        k: entry.keyword,
-        t: entry.target
-    }));
-    
+    const data = {
+        keywords: keywordEntries.map(entry => ({
+            k: entry.keyword,
+            t: entry.target
+        }))
+    };
+
     const baseUrl = window.location.href.replace('admin.html', 'index.html');
-    const url = `${baseUrl}?data=${encodeURIComponent(JSON.stringify(data))}`;
-    document.getElementById('demoUrl').textContent = url;
+    demoUrl.value = `${baseUrl}?data=${encodeURIComponent(JSON.stringify(data))}`;
 }
 
 function copyUrl() {
-    const url = document.getElementById('demoUrl').textContent;
-    if (url && !url.includes('Add keywords')) {
-        navigator.clipboard.writeText(url).then(() => {
-            const btn = document.querySelector('button');
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
-        });
+    const demoUrl = document.getElementById('demoUrl');
+    if (!demoUrl.value) {
+        alert('Please add at least one keyword pair first');
+        return;
     }
+
+    navigator.clipboard.writeText(demoUrl.value).then(() => {
+        alert('Demo URL copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy URL:', err);
+        alert('Failed to copy URL. Please select and copy manually.');
+    });
 }
 
-// Add initial entry
+// Add initial entry and set up the page
 document.addEventListener('DOMContentLoaded', () => {
     addKeywordEntry();
 });
