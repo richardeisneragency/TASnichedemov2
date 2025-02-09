@@ -355,7 +355,7 @@
             creditsCounter.innerHTML = 'Checking credits...';
             
             try {
-                const response = await fetch('/api/credits');
+                const response = await fetch('/.netlify/functions/server/api/credits');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }

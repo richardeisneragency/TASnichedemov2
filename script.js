@@ -190,6 +190,19 @@ function generateSuggestions(query) {
     return suggestions.slice(0, Math.floor(Math.random() * 3) + 5);
 }
 
+async function checkRank(keyword, domain) {
+    try {
+        const response = await fetch(`/.netlify/functions/server/api/rank?keyword=${encodeURIComponent(keyword)}&domain=${encodeURIComponent(domain)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error checking rank:', error);
+        return { error: 'Failed to check rank' };
+    }
+}
+
 function checkRanks(rankKeywords) {
     if (!rankKeywords || !Array.isArray(rankKeywords)) {
         console.error('Invalid rankKeywords:', rankKeywords);
@@ -237,11 +250,7 @@ function checkRanks(rankKeywords) {
         }
 
         try {
-            const response = await fetch(`/api/rank?domain=${encodeURIComponent(item.url)}&keyword=${encodeURIComponent(item.keyword)}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
+            const data = await checkRank(item.keyword, item.url);
             console.log('Rank response:', data);
             
             if (data.error) {
