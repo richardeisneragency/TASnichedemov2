@@ -1,12 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const serverless = require('serverless-http');
-
 const app = express();
 
-// Enable CORS for all environments
-app.use(cors());
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+    app.use(cors());
+}
+
 app.use(express.static('.'));
 
 // ScrapingDog API configuration
@@ -110,6 +111,7 @@ app.get('/api/rank', async (req, res) => {
     }
 });
 
+// Add credits checking endpoint
 app.get('/api/credits', async (req, res) => {
     try {
         // Make request to ScrapingDog's API status endpoint
@@ -150,4 +152,59 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // For Netlify Functions
-exports.handler = serverless(app);
+exports.handler = async function(event, context) {
+    // Only allow GET requests
+    if (event.httpMethod !== 'GET') {
+        return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+
+    try {
+        const params = event.queryStringParameters;
+        const { domain, keyword } = params;
+
+        // Validate inputs
+        if (!domain || !keyword) {
+            console.error('Missing required parameters:', { domain, keyword });
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Missing parameters',
+                    details: 'Both domain and keyword are required'
+                })
+            };
+        }
+
+        // Clean domain
+        let cleanDomain = domain.toLowerCase();
+        if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
+            cleanDomain = cleanDomain.replace(/^www\./, '');
+        } else {
+            cleanDomain = cleanDomain.replace(/^https?:\/\/(www\.)?/, '');
+        }
+        cleanDomain = cleanDomain.replace(/\/+$/, '');
+        console.log('Clean domain:', cleanDomain);
+
+        const result = await checkRankWithScrapingDog(keyword, cleanDomain);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                domain: cleanDomain,
+                keyword,
+                rank: result.rank || 'Not found in top results',
+                matchedUrl: result.matchedUrl,
+                totalResults: result.totalResults
+            })
+        };
+
+    } catch (error) {
+        console.error('Error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: 'Failed to check rank',
+                details: error.message
+            })
+        };
+    }
+};
