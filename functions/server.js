@@ -1,14 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const serverless = require('serverless-http');
+
 const app = express();
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-    app.use(cors());
-}
-
-app.use(express.static('.'));
+// Enable CORS for all environments
+app.use(cors());
 
 // ScrapingDog API configuration
 const SCRAPINGDOG_API_KEY = process.env.SCRAPINGDOG_API_KEY || 'b30d00d8-b207-449e-9be5-1fe88cc5cc6f';
@@ -37,7 +35,8 @@ async function checkRankWithScrapingDog(keyword, cleanDomain) {
     let matchedUrl = null;
 
     if (data.organic_results) {
-        for (const result of data.organic_results) {
+        for (let i = 0; i < data.organic_results.length; i++) {
+            const result = data.organic_results[i];
             const urls = [
                 result.displayed_link || '',
                 result.link || ''
@@ -49,8 +48,8 @@ async function checkRankWithScrapingDog(keyword, cleanDomain) {
                     .replace(/^www\./i, '')
                     .replace(/\/+$/, '');
 
-                if (resultDomain.includes(cleanDomain) || cleanDomain.includes(resultDomain)) {
-                    rank = result.rank;
+                if (resultDomain.includes(cleanDomain)) {
+                    rank = i + 1;
                     matchedUrl = url;
                     break;
                 }
@@ -61,150 +60,60 @@ async function checkRankWithScrapingDog(keyword, cleanDomain) {
     }
 
     return {
-        rank,
+        rank: rank || 'Not found in top results',
         matchedUrl,
-        totalResults: data.organic_results?.length || 0
+        domain: cleanDomain
     };
 }
 
+// API endpoint to check rank
 app.get('/api/rank', async (req, res) => {
     try {
         const { domain, keyword } = req.query;
         
-        // Validate inputs
         if (!domain || !keyword) {
-            console.error('Missing required parameters:', { domain, keyword });
-            return res.status(400).json({ 
-                error: 'Missing parameters', 
-                details: 'Both domain and keyword are required' 
+            return res.status(400).json({
+                error: 'Missing required parameters'
             });
-        }
-        
-        console.log('Checking rank for:', { domain, keyword });
-        
-        // Clean domain - handle with or without protocol
-        let cleanDomain = domain.toLowerCase();
-        if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
-            cleanDomain = cleanDomain.replace(/^www\./, ''); // Remove www. if present
-        } else {
-            cleanDomain = cleanDomain.replace(/^https?:\/\/(www\.)?/, ''); // Remove protocol and www.
-        }
-        cleanDomain = cleanDomain.replace(/\/+$/, ''); // Remove trailing slashes
-        console.log('Clean domain:', cleanDomain);
-
-        const result = await checkRankWithScrapingDog(keyword, cleanDomain);
-
-        return res.json({
-            domain: cleanDomain,
-            keyword,
-            rank: result.rank || 'Not found in top results',
-            matchedUrl: result.matchedUrl,
-            totalResults: result.totalResults
-        });
-
-    } catch (error) {
-        console.error('Error checking rank:', error);
-        res.status(500).json({ 
-            error: 'Failed to check rank', 
-            details: error.message 
-        });
-    }
-});
-
-// Add credits checking endpoint
-app.get('/api/credits', async (req, res) => {
-    try {
-        // Make request to ScrapingDog's API status endpoint
-        const response = await axios.get('https://api.scrapingdog.com/api/status', {
-            params: {
-                api_key: SCRAPINGDOG_API_KEY
-            }
-        });
-
-        if (response.status !== 200) {
-            throw new Error(`ScrapingDog API error: ${response.status}`);
-        }
-
-        const data = response.data;
-        console.log('Credits response:', data);
-
-        // Extract credits from the status response
-        res.json({
-            credits: data.remaining_requests || data.requests_remaining || 0,
-            plan: data.plan_name || data.subscription || 'Unknown',
-            rawResponse: data
-        });
-    } catch (error) {
-        console.error('Error checking credits:', error);
-        res.status(500).json({ 
-            error: 'Failed to check credits', 
-            details: error.message 
-        });
-    }
-});
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 3002;
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
-
-// For Netlify Functions
-exports.handler = async function(event, context) {
-    // Only allow GET requests
-    if (event.httpMethod !== 'GET') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
-
-    try {
-        const params = event.queryStringParameters;
-        const { domain, keyword } = params;
-
-        // Validate inputs
-        if (!domain || !keyword) {
-            console.error('Missing required parameters:', { domain, keyword });
-            return {
-                statusCode: 400,
-                body: JSON.stringify({
-                    error: 'Missing parameters',
-                    details: 'Both domain and keyword are required'
-                })
-            };
         }
 
         // Clean domain
-        let cleanDomain = domain.toLowerCase();
-        if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
-            cleanDomain = cleanDomain.replace(/^www\./, '');
-        } else {
-            cleanDomain = cleanDomain.replace(/^https?:\/\/(www\.)?/, '');
-        }
-        cleanDomain = cleanDomain.replace(/\/+$/, '');
-        console.log('Clean domain:', cleanDomain);
+        const cleanDomain = domain.toLowerCase()
+            .replace(/^https?:\/\//i, '')
+            .replace(/^www\./i, '')
+            .replace(/\/+$/, '');
 
         const result = await checkRankWithScrapingDog(keyword, cleanDomain);
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                domain: cleanDomain,
-                keyword,
-                rank: result.rank || 'Not found in top results',
-                matchedUrl: result.matchedUrl,
-                totalResults: result.totalResults
-            })
-        };
+        res.json(result);
 
     } catch (error) {
-        console.error('Error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: 'Failed to check rank',
-                details: error.message
-            })
-        };
+        console.error('Error checking rank:', error);
+        res.status(500).json({
+            error: 'Failed to check rank'
+        });
     }
-};
+});
+
+// API endpoint to check credits
+app.get('/api/credits', async (req, res) => {
+    try {
+        const response = await axios.get(`https://api.scrapingdog.com/check-credits?api_key=${SCRAPINGDOG_API_KEY}`);
+        
+        if (response.status === 200 && response.data) {
+            res.json({
+                credits: response.data.available_credits || 0,
+                plan: response.data.plan || 'Unknown'
+            });
+        } else {
+            throw new Error('Invalid response from ScrapingDog');
+        }
+    } catch (error) {
+        console.error('Error checking credits:', error);
+        res.status(500).json({
+            error: 'Failed to check credits'
+        });
+    }
+});
+
+// Export handler for Netlify Functions
+exports.handler = serverless(app);

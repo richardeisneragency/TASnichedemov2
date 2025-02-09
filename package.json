@@ -4,7 +4,8 @@
   "description": "Google-style autosuggest demo with SEO rank checking",
   "main": "functions/server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node functions/server.js",
+    "dev": "node functions/server.js",
     "build": "npm ci --production"
   },
   "dependencies": {
