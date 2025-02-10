@@ -109,4 +109,10 @@ async function copyUrl() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin page loaded, initializing...');
     addKeywordEntry();
+    
+    // Set initial credits display
+    const creditsDisplay = document.getElementById('creditsDisplay');
+    if (creditsDisplay) {
+        creditsDisplay.textContent = 'Demo Mode';
+    }
 });

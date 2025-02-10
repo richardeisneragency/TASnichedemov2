@@ -14,91 +14,51 @@
             display: flex;
             flex-direction: column;
         }
-        .page-title {
-            text-align: center;
-            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 56px;
-            font-weight: 800;
-            margin: 40px 20px 20px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            letter-spacing: -1px;
-            line-height: 1.2;
-        }
-        .subtitle {
-            text-align: center;
-            color: #5f6368;
-            font-size: 28px;
-            margin: 0 20px 60px;
-            font-weight: 600;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
         .container {
-            width: 100%;
-            max-width: 1400px;
+            max-width: 800px;
             margin: 0 auto;
-            display: flex;
-            gap: 40px;
-            flex: 1;
-            padding: 0 40px;
-            box-sizing: border-box;
-            min-height: calc(100vh - 180px);
-        }
-        .left-panel {
-            flex: 0 0 320px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            padding: 24px;
-            height: fit-content;
-        }
-        .right-panel {
-            flex: 1;
+            padding: 20px;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            padding-top: 40px;
+            justify-content: center;
         }
         .search-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
+            margin: 20px auto;
             position: relative;
         }
         #searchInput {
             width: 100%;
-            padding: 16px 24px;
-            font-size: 18px;
-            border: 1px solid #dadce0;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
             border-radius: 24px;
             outline: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            font-family: inherit;
+            box-shadow: 0 1px 3px rgba(32,33,36,0.1);
+            transition: box-shadow 0.3s;
         }
         #searchInput:focus {
-            border-color: #1a73e8;
-            box-shadow: 0 1px 6px rgba(26,115,232,0.2);
+            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+            border-color: rgba(223,225,229,0);
         }
         #suggestions {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            margin-top: 8px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            overflow: hidden;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px rgba(32,33,36,0.28);
+            margin-top: -1px;
             display: none;
             z-index: 1000;
+            overflow: hidden;
         }
         .suggestion {
-            padding: 12px 24px;
-            font-size: 16px;
-            color: #202124;
+            padding: 12px 16px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -108,21 +68,29 @@
         .suggestion.highlight {
             background-color: #e8f0fe;
             color: #1a73e8;
-            font-weight: 600;
+            font-weight: 500;
+        }
+        .keyword-list {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .keyword-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(32,33,36,0.1);
         }
         .section-title {
             color: #1a73e8;
-            font-size: 20px;
-            margin: 0 0 16px;
-        }
-        .keyword-section {
-            margin-bottom: 32px;
+            margin: 0 0 16px 0;
+            font-size: 1.2em;
         }
         .keyword-item {
-            padding: 12px 16px;
+            display: inline-block;
+            margin: 4px;
+            padding: 8px 16px;
             background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 8px;
+            border-radius: 16px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -130,46 +98,86 @@
             background: #e8f0fe;
         }
         .keyword-text {
-            color: #202124;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        .modal-title {
+            color: #1a73e8;
+            margin: 0 0 20px 0;
+            font-size: 1.5em;
+        }
+        .modal-text {
+            color: #5f6368;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .modal-button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .modal-button:hover {
+            background: #1557b0;
         }
     </style>
 </head>
 <body>
-    <h1 class="page-title">Top Autosuggest Demo</h1>
-    <div class="subtitle">Watch Your Business Dominate Google's Search Results</div>
-    
     <div class="container">
-        <div class="left-panel">
-            <div id="keywordList"></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" autocomplete="off" placeholder="Start typing...">
+            <div id="suggestions"></div>
         </div>
-        <div class="right-panel">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Type to search...">
-                <div id="suggestions"></div>
-            </div>
-        </div>
+        <div id="keywordList" class="keyword-list"></div>
     </div>
 
-    <div id="modal" class="modal">
+    <div id="modal">
         <div class="modal-content">
-            <button class="close-button" onclick="hideModal()">&times;</button>
-            <div id="modalContent"></div>
+            <h2 class="modal-title">Welcome to the Demo!</h2>
+            <p class="modal-text">
+                Type any of the keywords shown below to see Google-style suggestions appear.
+                Watch for the highlighted suggestion - that's the one we want users to notice!
+            </p>
+            <button class="modal-button" onclick="hideModal()">Got it!</button>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
         function showModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.add('show');
+            document.getElementById('modal').style.display = 'flex';
         }
-
+        
         function hideModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.remove('show');
+            document.getElementById('modal').style.display = 'none';
         }
+        
+        // Show modal on page load
+        showModal();
     </script>
 </body>
 </html>

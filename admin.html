@@ -167,8 +167,8 @@
         <h1>Demo Admin Panel</h1>
         
         <div class="credits-section">
-            <h2>Available API Credits</h2>
-            <div id="creditsDisplay" class="credits-value">Loading...</div>
+            <h2>Mode</h2>
+            <div id="creditsDisplay" class="credits-value">Demo Mode</div>
         </div>
 
         <button class="add" onclick="addKeywordEntry()">Add Keyword Entry</button>
@@ -185,26 +185,5 @@
     </div>
 
     <script src="admin.js"></script>
-    <script>
-        // Check API credits on page load
-        async function checkCredits() {
-            try {
-                const response = await fetch('/.netlify/functions/server/api/credits');
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('creditsDisplay').textContent = data.credits;
-                } else {
-                    throw new Error('Failed to fetch credits');
-                }
-            } catch (error) {
-                console.error('Error checking credits:', error);
-                document.getElementById('creditsDisplay').textContent = 'Error';
-            }
-        }
-
-        // Check credits every 30 seconds
-        setInterval(checkCredits, 30000);
-        checkCredits();
-    </script>
 </body>
 </html>

@@ -1,11 +1,16 @@
+// DOM Elements
 const searchInput = document.getElementById('searchInput');
 const suggestionsDiv = document.getElementById('suggestions');
+const keywordListDiv = document.getElementById('keywordList');
+
+// State
 let currentKeywords = [];
 let currentKeywordIndex = 0;
 let typingInterval;
 
 // Parse keywords from URL
 function initializeKeywords() {
+    console.log('Initializing keywords...');
     const urlParams = new URLSearchParams(window.location.search);
     const demoParam = urlParams.get('d');
     
@@ -14,6 +19,7 @@ function initializeKeywords() {
             // Decode base64 parameter
             const decodedData = atob(demoParam);
             console.log('Decoded data:', decodedData);
+            
             const params = JSON.parse(decodedData);
             console.log('Parsed params:', params);
             
@@ -30,7 +36,7 @@ function initializeKeywords() {
                 throw new Error('Invalid demo parameter format');
             }
         } catch (e) {
-            console.error('Error parsing URL data:', e);
+            console.error('Error parsing demo parameter:', e);
             currentKeywords = [];
         }
     } else {
@@ -38,10 +44,15 @@ function initializeKeywords() {
     }
 }
 
+// Display keyword list
 function displayKeywordList() {
-    const keywordListDiv = document.getElementById('keywordList');
     if (!keywordListDiv) {
         console.error('Keyword list div not found');
+        return;
+    }
+
+    if (currentKeywords.length === 0) {
+        keywordListDiv.innerHTML = '';
         return;
     }
 
@@ -56,6 +67,7 @@ function displayKeywordList() {
         </div>`;
 }
 
+// Select a keyword to demonstrate
 function selectKeyword(index) {
     if (index >= 0 && index < currentKeywords.length) {
         currentKeywordIndex = index;
@@ -63,10 +75,12 @@ function selectKeyword(index) {
     }
 }
 
+// Start typing animation
 function startTypingAnimation() {
     // Clear any existing animation
     clearInterval(typingInterval);
     searchInput.value = '';
+    suggestionsDiv.style.display = 'none';
     
     const currentKeyword = currentKeywords[currentKeywordIndex].k;
     let charIndex = 0;
@@ -88,6 +102,7 @@ function startTypingAnimation() {
     }, 100 + Math.random() * 100);
 }
 
+// Show suggestions based on input
 function showSuggestions(query) {
     if (!query) {
         suggestionsDiv.style.display = 'none';
@@ -110,6 +125,7 @@ function showSuggestions(query) {
     suggestionsDiv.style.display = 'block';
 }
 
+// Generate suggestions for a query
 function generateSuggestions(query) {
     query = query.toLowerCase();
     let suggestions = [];
@@ -159,6 +175,9 @@ searchInput.addEventListener('input', function(e) {
     clearInterval(typingInterval);
     showSuggestions(query);
 });
+
+// Make functions available globally
+window.selectKeyword = selectKeyword;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {

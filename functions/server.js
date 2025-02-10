@@ -9,10 +9,7 @@ const app = express();
 app.use(cors());
 
 // ScrapingDog API configuration
-const SCRAPINGDOG_API_KEY = process.env.SCRAPINGDOG_API_KEY;
-if (!SCRAPINGDOG_API_KEY) {
-    console.error('SCRAPINGDOG_API_KEY environment variable is not set');
-}
+const SCRAPINGDOG_API_KEY = 'b30d00d8-b207-449e-9be5-1fe88cc5cc6f';
 
 // Function to check rank using ScrapingDog
 async function checkRankWithScrapingDog(keyword, cleanDomain) {
