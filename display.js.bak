@@ -1,0 +1,241 @@
+// Global variables
+let demoKeywords = [];
+let rankKeywords = [];
+let currentDomain = '';
+let currentKeywordIndex = 0;
+let typingTimer;
+let cycleTimer;
+let isTyping = false;
+
+// Parse URL parameters
+function getUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const data = params.get('data');
+    if (data) {
+        try {
+            const decodedData = JSON.parse(atob(data));
+            console.log('Decoded data:', decodedData); // Debug
+            demoKeywords = decodedData.keywords || [];
+            rankKeywords = decodedData.rankKeywords || [];
+            currentDomain = decodedData.domain || '';
+            
+            // Debug logging
+            console.log('Rank Keywords:', rankKeywords);
+            console.log('Domain:', currentDomain);
+        } catch (e) {
+            console.error('Error parsing URL data:', e);
+        }
+    }
+}
+
+// Update the left panel with keywords
+function updateKeywordLists() {
+    // Update Demo Keywords section
+    const demoList = document.querySelector('.keyword-list:not(.rank-list)');
+    if (demoList) {
+        demoList.innerHTML = demoKeywords.map(entry => `
+            <li class="demo-keyword" data-keyword="${entry.keyword}" data-target="${entry.target}">
+                ${entry.keyword}
+            </li>
+        `).join('');
+
+        // Add click handlers to demo keywords
+        document.querySelectorAll('.demo-keyword').forEach(item => {
+            item.addEventListener('click', () => {
+                const keyword = item.dataset.keyword;
+                const target = item.dataset.target;
+                simulateSearch(keyword, target);
+            });
+        });
+    }
+    
+    // Update rank keywords section
+    const rankSection = document.querySelector('.rank-section');
+    const rankList = document.querySelector('.rank-list');
+    
+    console.log('Rank section:', rankSection); // Debug
+    console.log('Rank list:', rankList); // Debug
+    console.log('Current domain:', currentDomain); // Debug
+    console.log('Rank keywords:', rankKeywords); // Debug
+    
+    if (rankSection && rankList) {
+        if (rankKeywords && rankKeywords.length > 0 && currentDomain) {
+            console.log('Showing rank section'); // Debug
+            rankSection.style.display = 'block';
+            rankList.innerHTML = rankKeywords.map(entry => `
+                <li>
+                    <div class="keyword">${entry.keyword}</div>
+                    <div class="rank-result">Loading rank...</div>
+                </li>
+            `).join('');
+        } else {
+            console.log('Hiding rank section - no keywords or domain'); // Debug
+            rankSection.style.display = 'none';
+        }
+    } else {
+        console.error('Could not find rank section or list elements'); // Debug
+    }
+}
+
+// Load rank results
+async function loadRankResults() {
+    if (!currentDomain || !rankKeywords || !rankKeywords.length) {
+        console.log('Skipping rank check - no domain or keywords'); // Debug
+        return;
+    }
+    
+    console.log('Starting rank checks for domain:', currentDomain); // Debug
+    
+    // Update ranks for each keyword
+    for (const keyword of rankKeywords) {
+        try {
+            console.log('Checking rank for keyword:', keyword); // Debug
+            
+            const response = await fetch(`/api/rank?domain=${encodeURIComponent(currentDomain)}&keyword=${encodeURIComponent(keyword.keyword)}`);
+            const data = await response.json();
+            
+            console.log('Rank API response:', data); // Debug
+            
+            // Find the rank result element for this keyword
+            const keywordElements = document.querySelectorAll('.rank-list li');
+            const keywordElement = Array.from(keywordElements).find(el => 
+                el.querySelector('.keyword').textContent === keyword.keyword
+            );
+            
+            if (keywordElement) {
+                const rankElement = keywordElement.querySelector('.rank-result');
+                if (rankElement) {
+                    if (data.rank) {
+                        rankElement.textContent = `Rank: ${data.rank}`;
+                        rankElement.classList.remove('not-found');
+                    } else {
+                        rankElement.textContent = 'Not found in top 100';
+                        rankElement.classList.add('not-found');
+                    }
+                }
+            } else {
+                console.error('Could not find element for keyword:', keyword); // Debug
+            }
+        } catch (e) {
+            console.error('Error loading rank for keyword:', keyword, e);
+        }
+    }
+}
+
+// Simulate typing animation
+function typeText(text, input, callback) {
+    let i = 0;
+    isTyping = true;
+    input.value = '';
+    
+    function type() {
+        if (i < text.length) {
+            input.value += text.charAt(i);
+            i++;
+            setTimeout(type, Math.random() * 50 + 30);
+        } else {
+            isTyping = false;
+            if (callback) callback();
+        }
+    }
+    
+    type();
+}
+
+// Show search results with animation
+function showSearchResults(keyword, target) {
+    const resultsContainer = document.querySelector('.search-results');
+    
+    // Generate organic-looking suggestions
+    const suggestions = [
+        keyword,
+        `${keyword} near me`,
+        `best ${keyword}`,
+        `${keyword} reviews`,
+        target,
+        `${keyword} cost`,
+        `${keyword} services`,
+        `affordable ${keyword}`,
+        `local ${keyword}`,
+        `top rated ${keyword}`
+    ];
+    
+    // Shuffle suggestions except the target
+    const targetIndex = Math.floor(Math.random() * 6);
+    const shuffled = suggestions.filter(s => s !== target);
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Insert target at random position
+    shuffled.splice(targetIndex, 0, target);
+    
+    // Animate suggestions appearing
+    resultsContainer.style.display = 'block';
+    resultsContainer.innerHTML = '';
+    
+    shuffled.slice(0, 6).forEach((suggestion, index) => {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            const isTarget = suggestion === target;
+            
+            if (isTarget) {
+                div.innerHTML = `<a href="https://www.google.com/search?q=${encodeURIComponent(suggestion)}" 
+                    target="_blank" class="search-result highlighted">${suggestion}</a>`;
+            } else {
+                div.innerHTML = `<div class="search-result">${suggestion}</div>`;
+            }
+            
+            resultsContainer.appendChild(div);
+        }, index * 100);
+    });
+}
+
+// Simulate a complete search
+function simulateSearch(keyword, target) {
+    const input = document.getElementById('searchInput');
+    const resultsContainer = document.querySelector('.search-results');
+    
+    // Hide previous results
+    resultsContainer.style.display = 'none';
+    
+    // Type the keyword
+    typeText(keyword, input, () => {
+        // Show search results after typing
+        setTimeout(() => {
+            showSearchResults(keyword, target);
+        }, 300);
+    });
+}
+
+// Start auto-cycling through keywords
+function startKeywordCycle() {
+    if (!demoKeywords.length) return;
+    
+    function cycleNext() {
+        if (currentKeywordIndex >= demoKeywords.length) {
+            currentKeywordIndex = 0;
+        }
+        
+        const currentKeyword = demoKeywords[currentKeywordIndex];
+        simulateSearch(currentKeyword.keyword, currentKeyword.target);
+        currentKeywordIndex++;
+        
+        // Schedule next cycle
+        cycleTimer = setTimeout(cycleNext, 5000);
+    }
+    
+    // Start first cycle
+    cycleNext();
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+    getUrlParams();
+    updateKeywordLists();
+    startKeywordCycle();
+    
+    // Add slight delay before loading ranks to ensure DOM is ready
+    setTimeout(loadRankResults, 500);
+});

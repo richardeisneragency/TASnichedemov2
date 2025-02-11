@@ -1,0 +1,164 @@
+// Global variables
+let demoKeywords = [];
+let searchKeywords = [];
+let rankKeywords = [];
+let searchUrl = '';
+let currentDomain = '';
+
+// Add a new keyword entry to the demo section
+function addKeywordEntry() {
+    const entry = document.createElement('div');
+    entry.className = 'keyword-entry';
+    entry.innerHTML = `
+        <input type="text" placeholder="Keyword" onchange="updateKeyword(this, 'keyword')">
+        <input type="text" placeholder="Target" onchange="updateKeyword(this, 'target')">
+        <button class="remove" onclick="removeEntry(this)">Remove</button>
+    `;
+    document.getElementById('keywordEntries').appendChild(entry);
+}
+
+// Add a new search keyword entry
+function addSearchKeyword() {
+    const entry = document.createElement('div');
+    entry.className = 'keyword-entry';
+    entry.innerHTML = `
+        <input type="text" placeholder="Search Keyword (optional)" onchange="updateSearchKeyword(this)">
+        <button class="remove" onclick="removeEntry(this)">Remove</button>
+    `;
+    document.getElementById('searchKeywords').appendChild(entry);
+}
+
+// Add a new rank keyword entry
+function addRankKeyword() {
+    const entry = document.createElement('div');
+    entry.className = 'keyword-entry';
+    entry.innerHTML = `
+        <input type="text" placeholder="Keyword to check rank for" onchange="updateRankKeyword(this)">
+        <button class="remove" onclick="removeEntry(this)">Remove</button>
+    `;
+    document.getElementById('rankKeywords').appendChild(entry);
+}
+
+// Remove an entry
+function removeEntry(button) {
+    button.parentElement.remove();
+    updateAllArrays(); // Update arrays when removing entries
+}
+
+// Update all arrays based on current inputs
+function updateAllArrays() {
+    // Update demo keywords
+    demoKeywords = Array.from(document.querySelectorAll('#keywordEntries .keyword-entry')).map(entry => {
+        const inputs = entry.querySelectorAll('input');
+        return {
+            keyword: inputs[0].value.trim(),
+            target: inputs[1].value.trim()
+        };
+    }).filter(entry => entry.keyword && entry.target);
+
+    // Update search keywords
+    searchKeywords = Array.from(document.querySelectorAll('#searchKeywords .keyword-entry input')).map(input => 
+        input.value.trim()
+    ).filter(keyword => keyword);
+
+    // Update rank keywords
+    rankKeywords = Array.from(document.querySelectorAll('#rankKeywords .keyword-entry input')).map(input => 
+        input.value.trim()
+    ).filter(keyword => keyword);
+
+    console.log('Updated arrays:', { demoKeywords, searchKeywords, rankKeywords, currentDomain });
+}
+
+// Update keyword data
+function updateKeyword(input, field) {
+    const entry = input.parentElement;
+    const entryIndex = Array.from(entry.parentElement.children).indexOf(entry);
+    
+    if (!demoKeywords[entryIndex]) {
+        demoKeywords[entryIndex] = {};
+    }
+    demoKeywords[entryIndex][field] = input.value.trim();
+    updateAllArrays();
+}
+
+// Update search keyword
+function updateSearchKeyword(input) {
+    updateAllArrays();
+}
+
+// Update rank keyword
+function updateRankKeyword(input) {
+    updateAllArrays();
+}
+
+// Update search URL
+function updateSearchUrl(value) {
+    searchUrl = value.trim();
+}
+
+// Update domain for rank checking
+function updateDomain(value) {
+    currentDomain = value.toLowerCase()
+        .replace(/^https?:\/\//i, '')
+        .replace(/^www\./i, '')
+        .replace(/\/+$/, '');
+    console.log('Domain updated:', currentDomain);
+}
+
+// Generate and copy URL
+function generateAndCopyUrl() {
+    // Update all arrays one final time
+    updateAllArrays();
+    
+    // Validate demo keywords
+    if (demoKeywords.length === 0) {
+        alert('Please add at least one demo keyword with target');
+        return;
+    }
+    
+    // Generate data object
+    const data = {
+        keywords: demoKeywords
+    };
+    
+    // Add optional search data if present
+    if (searchUrl || searchKeywords.length > 0) {
+        data.search = {
+            url: searchUrl,
+            keywords: searchKeywords
+        };
+    }
+    
+    // Add rank data if present
+    if (currentDomain && rankKeywords.length > 0) {
+        data.domain = currentDomain;
+        data.rankKeywords = rankKeywords.map(keyword => ({ keyword }));
+    }
+    
+    // Debug log
+    console.log('Generated URL data:', data);
+    
+    // Generate and copy URL
+    const encodedData = btoa(JSON.stringify(data));
+    const url = `${window.location.origin}/display.html?data=${encodedData}`;
+    
+    // Copy to clipboard
+    const tempInput = document.createElement('input');
+    tempInput.value = url;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    
+    // Show notification
+    const notification = document.getElementById('copyNotification');
+    notification.classList.add('show');
+    setTimeout(() => notification.classList.remove('show'), 2000);
+}
+
+// Initialize with one entry of each type
+document.addEventListener('DOMContentLoaded', () => {
+    addKeywordEntry();
+    addSearchKeyword();
+    addRankKeyword();
+});

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Top Autosuggest Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0;
+            padding: 20px;
+            background: #4285f4;
+            font-family: 'Poppins', Arial, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .left-panel {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .panel-section {
+            margin-bottom: 30px;
+        }
+        
+        .panel-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            margin: 0 0 15px;
+            font-size: 18px;
+            color: #202124;
+        }
+        
+        .keyword-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .keyword-list li {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #202124;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .keyword-list li:hover {
+            background: #e8f0fe;
+        }
+        
+        .keyword-list li.demo-keyword {
+            font-weight: 500;
+        }
+        
+        .rank-section .keyword-list li {
+            cursor: default;
+        }
+        
+        .rank-section .keyword-list li:hover {
+            background: #f8f9fa;
+        }
+        
+        .rank-result {
+            margin-top: 5px;
+            font-size: 13px;
+            color: #34a853;
+        }
+        
+        .rank-result.not-found {
+            color: #ea4335;
+        }
+        
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+        }
+        
+        .google-logo {
+            width: 272px;
+            height: 92px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 10px;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        #searchInput {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            outline: none;
+        }
+        
+        .search-results {
+            display: none;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .search-result {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-result:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-result.highlighted {
+            background-color: #ffd700;
+            font-weight: 500;
+        }
+        
+        .search-result.highlighted:hover {
+            background-color: #ffed4a;
+            text-decoration: underline;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .page-header h1 {
+            font-size: 2.8em;
+            margin: 0 0 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .page-header h2 {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin: 0;
+            opacity: 0.9;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>Top Autosuggest Demo</h1>
+        <h2>Watch Your Business Dominate Google's Search Results</h2>
+    </div>
+    <div class="page-container">
+        <div class="left-panel">
+            <div class="panel-section">
+                <h2>Demo Keywords</h2>
+                <ul class="keyword-list">
+                    <li class="demo-keyword">hvac macon ga</li>
+                </ul>
+            </div>
+            <div class="panel-section rank-section" style="display: none;">
+                <h2>Google Search Rank</h2>
+                <ul class="keyword-list rank-list">
+                    <!-- Rank keywords will be populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
+        <div class="right-panel">
+            <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="google-logo">
+            <div class="search-container">
+                <input type="text" id="searchInput" value="hvac macon ga" autocomplete="off">
+                <div class="search-results">
+                    <div class="search-result">hvac macon ga</div>
+                    <div class="search-result">hvac macon ga near me</div>
+                    <div class="search-result">hvac macon ga reviews</div>
+                    <a href="https://buckyholland.com" target="_blank" class="search-result highlighted">hvac macon ga bucky holland heating and air</a>
+                    <div class="search-result">hvac macon ga cost</div>
+                    <div class="search-result">hvac macon ga services</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="display.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScrapingDog API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+        .url-list { margin-top: 20px; }
+        .url-item { margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #eee; }
+        .match { background: #ffeb3b; }
+    </style>
+</head>
+<body>
+    <h1>ScrapingDog API Test</h1>
+    
+    <div>
+        <label>Keyword:</label>
+        <input type="text" id="keyword" value="plumber macon">
+    </div>
+    <div style="margin-top: 10px;">
+        <label>Domain:</label>
+        <input type="text" id="domain" value="https://www.rickyheathplumbing.com/" style="width: 300px;">
+    </div>
+    <div style="margin-top: 10px;">
+        <button onclick="testApi()">Test API</button>
+    </div>
+
+    <div id="results" class="result"></div>
+
+    <script>
+        function cleanDomain(domain) {
+            return domain.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+        }
+
+        async function testApi() {
+            const keyword = document.getElementById('keyword').value;
+            const domain = document.getElementById('domain').value;
+            const resultsDiv = document.getElementById('results');
+            const cleanedDomain = cleanDomain(domain);
+
+            resultsDiv.innerHTML = 'Loading...';
+
+            try {
+                // Make the API call
+                const response = await fetch(`/api/check-rank?keyword=${encodeURIComponent(keyword)}&domain=${encodeURIComponent(domain)}`);
+                const rankData = await response.json();
+                
+                // Get the raw API response
+                const rawResponse = await fetch('/api/raw-results?keyword=' + encodeURIComponent(keyword));
+                const rawData = await rawResponse.json();
+
+                let html = '<h3>Rank Result:</h3>';
+                html += `<pre>${JSON.stringify(rankData, null, 2)}</pre>`;
+                
+                html += '<h3>Raw API Response:</h3>';
+                html += `<pre>${JSON.stringify(rawData, null, 2)}</pre>`;
+
+                if (rawData.organic) {
+                    html += '<h3>All URLs Found:</h3>';
+                    html += '<div class="url-list">';
+                    rawData.organic.forEach((result, index) => {
+                        const link = result.link || '';
+                        const displayedLink = result.displayed_link || '';
+                        const title = result.title || '';
+                        
+                        const isMatch = link.toLowerCase().includes(cleanedDomain) || 
+                                      displayedLink.toLowerCase().includes(cleanedDomain);
+                        
+                        html += `
+                            <div class="url-item ${isMatch ? 'match' : ''}">
+                                <strong>#${index + 1}</strong><br>
+                                Title: ${title}<br>
+                                Link: ${link}<br>
+                                Displayed: ${displayedLink}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

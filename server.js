@@ -1,14 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
-const serverless = require('serverless-http');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
-const router = express.Router();
+const port = 8000;
 
 // Enable CORS for all environments
 app.use(cors());
+
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname)));
 
 // Disable caching for all routes
 app.use((req, res, next) => {
@@ -20,6 +22,16 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
+});
+
+// Redirect /admin to admin.html
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// Redirect root to index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ScrapingDog API configuration
@@ -36,7 +48,7 @@ function normalizeDomain(domain) {
 }
 
 // API endpoint to check rank
-router.get('/api/check-rank', async (req, res) => {
+app.get('/api/check-rank', async (req, res) => {
     const { keyword, domain } = req.query;
     console.log('=== Starting Rank Check ===');
     console.log(`Keyword: "${keyword}"`);
@@ -73,8 +85,7 @@ router.get('/api/check-rank', async (req, res) => {
                 const title = (result.title || '').toLowerCase();
                 const domainLower = cleanDomain.toLowerCase();
                 
-                if (title.includes(domainLower) || 
-                    (domain.includes('rickyheathplumbing') && title.includes('ricky heath plumbing'))) {
+                if (title.includes(domainLower)) {
                     console.log(`Found local match at position ${i + 1}:`);
                     console.log(`Title: "${result.title}"`);
                     bestRank = i + 1;
@@ -125,7 +136,7 @@ router.get('/api/check-rank', async (req, res) => {
 });
 
 // API endpoint to check credits
-router.get('/api/credits', async (req, res) => {
+app.get('/api/credits', async (req, res) => {
     try {
         const response = await axios.get(`https://api.scrapingdog.com/check-credits?api_key=${SCRAPINGDOG_API_KEY}`);
         
@@ -145,7 +156,7 @@ router.get('/api/credits', async (req, res) => {
     }
 });
 
-app.use('/.netlify/functions/server', router);
-
-// Export the serverless handler
-exports.handler = serverless(app);
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dog API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .dog-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .dog-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dog API Test Page</h1>
+    
+    <div>
+        <button onclick="getRandomDog()">Get Random Dog</button>
+        <button onclick="getBreedList()">Get Breed List</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const DOG_API_BASE_URL = 'https://api.thedogapi.com/v1';
+        
+        async function getRandomDog() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`${DOG_API_BASE_URL}/images/search`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const dog = data[0];
+                    resultsDiv.innerHTML = `
+                        <div class="dog-card">
+                            <img src="${dog.url}" alt="Random dog" class="dog-image">
+                            <p>ID: ${dog.id}</p>
+                            ${dog.breeds && dog.breeds.length > 0 ? 
+                                `<p>Breed: ${dog.breeds[0].name}</p>` : 
+                                '<p>Breed: Unknown</p>'}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('No dog image received');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+
+        async function getBreedList() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Loading breeds...';
+            
+            try {
+                const response = await fetch(`${DOG_API_BASE_URL}/breeds`);
+                const breeds = await response.json();
+                
+                if (breeds && breeds.length > 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="dog-card">
+                            <h3>Available Breeds (${breeds.length})</h3>
+                            <ul>
+                                ${breeds.slice(0, 10).map(breed => 
+                                    `<li>${breed.name} - ${breed.temperament || 'No temperament info'}</li>`
+                                ).join('')}
+                            </ul>
+                            <p><em>Showing first 10 breeds of ${breeds.length} total breeds</em></p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('No breeds received');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

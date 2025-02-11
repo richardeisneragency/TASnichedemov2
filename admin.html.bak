@@ -118,14 +118,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-        #searchSection {
-            display: none;
-        }
-
-        #searchSection.visible {
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -135,25 +127,29 @@
         <div class="section" id="demoSection">
             <h2>Demo Keywords</h2>
             <div class="keyword-entries" id="keywordEntries"></div>
-            <button onclick="addKeywordEntry()">Add Keyword</button>
-        </div>
-
-        <div class="checkbox-wrapper">
-            <input type="checkbox" id="showOptional" onchange="toggleOptionalSection()">
-            <label for="showOptional">Show Optional Search Settings</label>
+            <button class="add-button" onclick="addKeywordEntry()">Add Keyword</button>
         </div>
         
         <div class="section" id="searchSection">
             <h2>Optional Search Settings</h2>
             <div>
-                <input type="text" id="domain" placeholder="Domain to check rank for (e.g., example.com)" onchange="updateDomain(this.value)" style="width: 100%; margin-bottom: 10px;">
+                <input type="text" id="searchUrl" placeholder="Search URL (optional)" onchange="updateSearchUrl(this.value)" style="width: 100%; margin-bottom: 10px;">
             </div>
             <div class="keyword-entries" id="searchKeywords"></div>
-            <button onclick="addSearchKeyword()">Add Search Keyword</button>
+            <button class="add-button" onclick="addSearchKeyword()">Add Search Keyword</button>
+        </div>
+        
+        <div class="section" id="rankSection">
+            <h2>Google Rank Check</h2>
+            <div>
+                <input type="text" id="domainInput" placeholder="Domain to check rank for (e.g., example.com)" onchange="updateDomain(this.value)" style="width: 100%; margin-bottom: 10px;">
+            </div>
+            <div class="keyword-entries" id="rankKeywords"></div>
+            <button class="add-button" onclick="addRankKeyword()">Add Rank Keyword</button>
         </div>
         
         <div class="section" style="text-align: center;">
-            <button class="generate" onclick="generateAndCopyUrl()">
+            <button class="generate" onclick="generateAndCopyUrl()" style="font-size: 1.2em; padding: 12px 24px;">
                 Generate & Copy Demo URL
             </button>
         </div>
